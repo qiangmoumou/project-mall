@@ -1,29 +1,9 @@
-# project-mall
+#新项目:
 
-## Project setup
-```
-npm install
-```
+###1.划分目录结构
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+###2.引用了两个css文件
 
-### Compiles and minifies for production
-```
-npm run build
-```
+###3.根目录创建文件配置vue.config.js, 根目录创建.editorconfig规范书写格式
 
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+###4.项目的模块划分:tabbar -> 路由映射关系
