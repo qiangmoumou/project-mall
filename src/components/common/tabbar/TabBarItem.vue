@@ -30,6 +30,7 @@
     },
     methods: {
       itemClick() {
+        // 跳转页面 没有历史记录，点击返回 会 返回上上级， 不会返回上级，因为没有记录
         this.$router.replace(this.path)
       }
     }

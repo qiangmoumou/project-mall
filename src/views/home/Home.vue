@@ -4,139 +4,46 @@
             <div slot="center">首页</div>
         </nav-bar>
 
-        <!-- 轮播图 -->
-        <swiper :banner="banners" :isfull="true"></swiper>
+        <!-- 绑定 BScroll -->
+        <scroll class="content" ref="scroll" :probe-type="3" @scroll="contentScroll">
 
-        <!-- 推荐 -->
-        <recommendView :recommend="recommends" />
+            <!-- 轮播图 -->
+            <swiper :banner="banners" :isfull="true"></swiper>
 
-        <!-- 本周流行 -->
-        <feature-view />
+            <!-- 推荐 -->
+            <recommendView :recommend="recommends" />
 
-        <!-- 分类 -->
-        <tab-control class="tab-control" :titles="['流行', '新款', '精选']"/>
+            <!-- 本周流行 -->
+            <feature-view />
 
+            <!-- 分类 -->
+            <!-- 默认类型为 pop  => :goods="goods['pop'].list" -->
+            <tab-control class="tab-control" :titles="['流行', '新款', '精选']" @tabClick="tabClick"/>
+            <goods-list :goods="showGoods" />
 
-        <ul>
-            <li>1</li>
-            <li>2</li>
-            <li>3</li>
-            <li>4</li>
-            <li>5</li>
-            <li>6</li>
-            <li>7</li>
-            <li>8</li>
-            <li>9</li>
-            <li>10</li>
-            <li>11</li>
-            <li>12</li>
-            <li>13</li>
-            <li>14</li>
-            <li>15</li>
-            <li>16</li>
-            <li>17</li>
-            <li>18</li>
-            <li>19</li>
-            <li>20</li>
-            <li>21</li>
-            <li>22</li>
-            <li>23</li>
-            <li>24</li>
-            <li>25</li>
-            <li>26</li>
-            <li>27</li>
-            <li>28</li>
-            <li>29</li>
-            <li>30</li>
-            <li>31</li>
-            <li>32</li>
-            <li>33</li>
-            <li>34</li>
-            <li>35</li>
-            <li>36</li>
-            <li>37</li>
-            <li>38</li>
-            <li>39</li>
-            <li>40</li>
-            <li>41</li>
-            <li>42</li>
-            <li>43</li>
-            <li>44</li>
-            <li>45</li>
-            <li>46</li>
-            <li>47</li>
-            <li>48</li>
-            <li>49</li>
-            <li>50</li>
-            <li>51</li>
-            <li>52</li>
-            <li>53</li>
-            <li>54</li>
-            <li>55</li>
-            <li>56</li>
-            <li>57</li>
-            <li>58</li>
-            <li>59</li>
-            <li>60</li>
-            <li>61</li>
-            <li>62</li>
-            <li>63</li>
-            <li>64</li>
-            <li>65</li>
-            <li>66</li>
-            <li>67</li>
-            <li>68</li>
-            <li>69</li>
-            <li>70</li>
-            <li>71</li>
-            <li>72</li>
-            <li>73</li>
-            <li>74</li>
-            <li>75</li>
-            <li>76</li>
-            <li>77</li>
-            <li>78</li>
-            <li>79</li>
-            <li>80</li>
-            <li>81</li>
-            <li>82</li>
-            <li>83</li>
-            <li>84</li>
-            <li>85</li>
-            <li>86</li>
-            <li>87</li>
-            <li>88</li>
-            <li>89</li>
-            <li>90</li>
-            <li>91</li>
-            <li>92</li>
-            <li>93</li>
-            <li>94</li>
-            <li>95</li>
-            <li>96</li>
-            <li>97</li>
-            <li>98</li>
-            <li>99</li>
-            <li>100</li>
-        </ul>
-
-
+        </scroll>
+            
+        <!-- 回到顶部  当我们需要监听一个组件的原生事件时，必须给对应的事件加上 .native修饰符 才能进行监听（区别：元素就像上面写的方法一样直接监听，但是这里是组件监听所以要用修饰符）-->
+        <back-top @click.native="backClick" v-show="isShow"/>
+        
     </div>
 </template>
 
 <script>
 // 公共
 import Swiper from '@/common/swiper/Swiper'
+import Scroll from '@/components/common/scroll/Scroll'
 
 // 半公共
-import {getHomeMultidata} from 'network/home'
+import {getHomeMultidata, getHomeGoods} from 'network/home'
 import NavBar from 'components/common/navbar/NavBar'
 import TabControl from 'components/content/tabControl/TabControl'
+import GoodsList from 'components/content/goods/GoodsList'
+import BackTop from 'components/content/backTop/BackTop'
 
 // 私有
 import RecommendView from './childComps/RecommendView'
 import FeatureView from './childComps/FeatureView'
-
 
     export default {
         data() {
@@ -145,36 +52,109 @@ import FeatureView from './childComps/FeatureView'
                 recommends: [],
                 goods: {
                     'pop': {page: 0, list: []},
-                    'news': {page: 0, list: []},
+                    'new': {page: 0, list: []},
                     'sell': {page: 0, list: []}
-                }
+                },
+                // 默认为 pop
+                currentType: 'pop',
+                // 返回顶部的显示隐藏
+                isShow: false,
+                // 滚动框高度
+                isHeight: 0
             }
         },
         components: {
             Swiper,
+            Scroll,
 
             NavBar,
             TabControl,
+            GoodsList,
+            BackTop,
             
             RecommendView,
             FeatureView,
 
 
         },
+        computed: {
+            showGoods() {
+                return this.goods[this.currentType].list
+            }
+        },
         created() {
-            // 1. 请求多个数据
-            getHomeMultidata().then(res => {
-                this.banners = res.data.banner.list
-                this.recommends = res.data.recommend.list
-            })
+            // 1.1 请求多个数据
+            this.getHomeMultidata()
+
+            // 2.1 请求商品数据
+            this.getHomeGoods('pop')
+            this.getHomeGoods('new')
+            this.getHomeGoods('sell')
+   
+        },
+        methods: {
+            /*
+            * 事件监听相关的方法
+            */
+
+            // 子组件传过来的值， 来触发的一个方法 $emit
+            tabClick(index) {
+                switch (index) {
+                    case 0:
+                        this.currentType = 'pop'
+                        break
+                    case 1:
+                        this.currentType = 'new'
+                        break
+                    case 2: 
+                        this.currentType = 'sell' 
+                        break       
+                }
+            },
+
+            // 回到顶部
+            backClick() {
+                // 拿到 Scroll 内部的方法进行调用，time默认300，传值就会改变
+                this.$refs.scroll.scrollTo(0, 0)
+            },
+
+            // 滚动相关操作
+            contentScroll(position) {               
+                this.isHeight = this.$refs.scroll.$refs.wrapper.offsetHeight
+                this.isShow = -position.y > this.isHeight
+            },
+
+
+
+            /*
+            * 网络请求相关的方法
+            */
+            // 把请求数据的代码方法写到这里更好,到时候直接交给 created 调用就行
+            getHomeMultidata() {
+                // 1. 请求多个数据
+                getHomeMultidata().then(res => {
+                    this.banners = res.data.banner.list
+                    this.recommends = res.data.recommend.list
+                })
+            },
+
+            // 2. 请求商品数据
+            getHomeGoods(type) {
+                const page = this.goods[type].page + 1
+                getHomeGoods(type, page).then(res => {
+                    // ...nums1 解构: 解析数组,将数组中的元素一个一个的取出来
+                    this.goods[type].list.push(...res.data.list)
+                    // 页码加 1
+                    this.goods[type].page += 1
+                })
+            }
         }
     }
 </script>
 
 <style scoped>
     #home {
-        padding-top: 44px;
-        padding-bottom:100px;
+        height: 100vh;
     }
     .home-nav {
         background-color: var(--color-tint);
@@ -187,7 +167,13 @@ import FeatureView from './childComps/FeatureView'
     }
     
     .tab-control{
-        position: sticky;
-        top: 44px;
+        position: sticky;    /* 如果要用 position：stikcy 的话，它的父元素就不能用 overflow: hidden; 但是地导航切换又需要overflow, 所以在这里把动画去掉了， */
+        top: 44px;           /* 因为我们要这个 position:sticky的效果， 这个效果这样写只是暂时的，将来正确的写法是用js 来实现 */
+    }
+
+    .content{
+        height: calc(100% - 96px);
+        overflow: hidden;
+        margin-top: 44px;
     }
 </style>
